@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+<robot name="snake" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- constants -->
+  <xacro:property name="pi" value="3.1415926535897931" />
+  <xacro:property name="joint_num" value="40" />
+
+  <xacro:property name="link_mass"   value="0.20" /> <!-- arbitrary value for link mass -->
+  <xacro:property name="link_length" value="0.09" /> <!-- Square dimensions of links -->
+  <xacro:property name="link_radius" value="0.05" /> <!-- Square dimensions of links -->
+
+  <xacro:arg name="joint_name" default="joint"/>
+  <xacro:property name="joint_name" value="$(arg joint_name)" />
+  <xacro:arg name="link_name" default="link"/>
+  <xacro:property name="link_name" value="$(arg link_name)" />
+
+  <!-- macros -->
+  <xacro:macro name="snake_link" params="index isHead isMotorLink">
+    <link name="${link_name}${index}">
+      <visual>
+        <geometry>	
+	  <xacro:if value="${isMotorLink}"> 
+	    <mesh filename="package://snake_description/meshes/DAE/pitch_motor_link2.dae" />
+	  </xacro:if>
+	  <xacro:unless value="${isMotorLink}">
+	    <mesh filename="package://snake_description/meshes/DAE/yaw_motor_link2.dae" />
+	  </xacro:unless>
+        </geometry>
+      </visual>
+      
+      <!-- ====== for Gazebo ====== -->
+      <collision>      
+        <geometry>
+          <xacro:if value="${isMotorLink}"> 
+            <mesh filename="package://snake_description/meshes/DAE/pitch_motor_link2.dae" />
+	  </xacro:if>
+	  <xacro:unless value="${isMotorLink}">
+	    <mesh filename="package://snake_description/meshes/DAE/yaw_motor_link2.dae" />
+	  </xacro:unless>
+        </geometry>
+      </collision>
+      <inertial>       
+        <mass value="${link_mass}"/>
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      </inertial>
+      <!-- == == == == == == == == == -->
+      
+    </link>
+  </xacro:macro>
+
+  <!-- joint -->
+  <xacro:macro name="snake_joint" params="index pl_index isPitch">
+    <joint name="${joint_name}${index}" type="revolute">
+      <parent link="${link_name}${pl_index}"/>
+      <child link="${link_name}${index}"/>
+      <origin xyz="${-link_length} 0 0"/>
+      <xacro:if value="${isPitch}">
+       <axis xyz="0 1 0"/>
+      </xacro:if>
+      <xacro:unless value="${isPitch}">
+       <axis xyz="0 0 1"/>
+      </xacro:unless>
+     
+      <!-- ====== for Gazebo  ======  -->
+      <limit effort="30" lower="-1.3" upper="1.3" velocity="1.571"/>
+      <dynamics damping="0.7"/>
+      <!-- == == == == == == == == == -->
+
+    </joint>
+  </xacro:macro>
+
+  <!-- head link (GoPro) -->
+  <link name="camera_${link_name}">
+    <visual>
+      <geometry>
+       <mesh filename="package://snake_description/meshes/DAE/head_link.dae"/>
+      </geometry>
+    </visual>
+
+    <!-- ====== for Gazebo ======  -->
+    <collision>      
+      <geometry>
+       <mesh filename="package://snake_description/meshes/DAE/head_link.dae"/>
+      </geometry>
+    </collision>
+    <inertial>
+       <mass value="${link_mass}"/>
+       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <!-- == == == == == == == == == -->
+  </link>
+   
+   <!--  joints -->
+  <joint name="${joint_name}0" type="revolute">
+    <parent link="${link_name}0"/>
+    <child link="camera_${link_name}"/> 
+    <origin xyz="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="30" lower="-1.3" upper="1.3" velocity="1.571"/>
+    <dynamics damping="0.7"/>   
+  </joint>
+
+  <!-- Tail link -->
+  <link name="tail_${link_name}">
+    <visual>
+      <geometry>
+        <mesh filename="package://snake_description/meshes/DAE/tail_link.dae"/>
+      </geometry>
+    </visual>
+
+    <!-- ======= for Gazebo ====== -->
+    <collision>      
+      <geometry>
+        <mesh filename="package://snake_description/meshes/DAE/tail_link.dae"/>
+      </geometry>
+    </collision>
+    <inertial>
+       <mass value="${link_mass}"/>
+       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <!-- == == == == == == == == == -->
+  </link>
+   
+   <!--  joints -->
+  <joint name="${joint_name}${joint_num}" type="revolute">
+    <parent link="${link_name}39"/>
+    <child link="tail_${link_name}"/> 
+    <origin xyz="${-link_length} 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="30" lower="-1.3" upper="1.3" velocity="1.571"/>
+    <dynamics damping="0.7"/>   
+  </joint>
+
+
+<!-- body units -->
+<xacro:snake_link index="0" isHead="true" isMotorLink="true"/>
+
+<xacro:snake_joint index="1" pl_index="0" isPitch="true"/>
+<xacro:snake_link index="1" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="2" pl_index="1" isPitch="false"/>
+<xacro:snake_link index="2" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="3" pl_index="2" isPitch="true"/>
+<xacro:snake_link index="3" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="4" pl_index="3" isPitch="false"/>
+<xacro:snake_link index="4" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="5" pl_index="4" isPitch="true"/>
+<xacro:snake_link index="5" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="6" pl_index="5" isPitch="false"/>
+<xacro:snake_link index="6" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="7" pl_index="6" isPitch="true"/>
+<xacro:snake_link index="7" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="8" pl_index="7" isPitch="false"/>
+<xacro:snake_link index="8" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="9" pl_index="8" isPitch="true"/>
+<xacro:snake_link index="9" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="10" pl_index="9" isPitch="false"/>
+<xacro:snake_link index="10" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="11" pl_index="10" isPitch="true"/>
+<xacro:snake_link index="11" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="12" pl_index="11" isPitch="false"/>
+<xacro:snake_link index="12" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="13" pl_index="12" isPitch="true"/>
+<xacro:snake_link index="13" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="14" pl_index="13" isPitch="false"/>
+<xacro:snake_link index="14" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="15" pl_index="14" isPitch="true"/>
+<xacro:snake_link index="15" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="16" pl_index="15" isPitch="false"/>
+<xacro:snake_link index="16" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="17" pl_index="16" isPitch="true"/>
+<xacro:snake_link index="17" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="18" pl_index="17" isPitch="false"/>
+<xacro:snake_link index="18" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="19" pl_index="18" isPitch="true"/>
+<xacro:snake_link index="19" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="20" pl_index="19" isPitch="false"/>
+<xacro:snake_link index="20" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="21" pl_index="20" isPitch="true"/>
+<xacro:snake_link index="21" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="22" pl_index="21" isPitch="false"/>
+<xacro:snake_link index="22" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="23" pl_index="22" isPitch="true"/>
+<xacro:snake_link index="23" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="24" pl_index="23" isPitch="false"/>
+<xacro:snake_link index="24" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="25" pl_index="24" isPitch="true"/>
+<xacro:snake_link index="25" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="26" pl_index="25" isPitch="false"/>
+<xacro:snake_link index="26" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="27" pl_index="26" isPitch="true"/>
+<xacro:snake_link index="27" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="28" pl_index="27" isPitch="false"/>
+<xacro:snake_link index="28" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="29" pl_index="28" isPitch="true"/>
+<xacro:snake_link index="29" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="30" pl_index="29" isPitch="false"/>
+<xacro:snake_link index="30" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="31" pl_index="30" isPitch="true"/>
+<xacro:snake_link index="31" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="32" pl_index="31" isPitch="false"/>
+<xacro:snake_link index="32" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="33" pl_index="32" isPitch="true"/>
+<xacro:snake_link index="33" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="34" pl_index="33" isPitch="false"/>
+<xacro:snake_link index="34" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="35" pl_index="34" isPitch="true"/>
+<xacro:snake_link index="35" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="36" pl_index="35" isPitch="false"/>
+<xacro:snake_link index="36" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="37" pl_index="36" isPitch="true"/>
+<xacro:snake_link index="37" isHead="false" isMotorLink="false"/>
+
+<xacro:snake_joint index="38" pl_index="37" isPitch="false"/>
+<xacro:snake_link index="38" isHead="false" isMotorLink="true"/>
+
+<xacro:snake_joint index="39" pl_index="38" isPitch="true"/>
+<xacro:snake_link index="39" isHead="false" isMotorLink="false"/>
+
+
+<!-- tail unit must be here -->
+<xacro:include filename="$(find snake_description)/urdf/snake.gazebo.xacro"/> 
+
+
+</robot>
+
