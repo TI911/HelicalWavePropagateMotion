@@ -18,6 +18,7 @@
 #include "robot_spec.h"
 #include "winding_gait.h"
 #include "helical_wave_propagate_motion.h"
+#include "inchworm_gait.h"
 
 //#include "sidewinding_gait.h"
 //#include "lateral_rolling_gait.h"
@@ -53,6 +54,7 @@ class SnakeControl {   //: public SnakebotControlRequest{
   static void OperateMoveWinding(joy_handler_hori::JoySelectedData joy_data);
   static void OperateMoveWindingShift(joy_handler_hori::JoySelectedData joy_data);
   static void OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySelectedData joy_data);
+  static void OperateMoveInchwormGait(joy_handler_hori::JoySelectedData joy_data);
 
   static void OperateMoveTest(joy_handler_hori::JoySelectedData joy_data);
 
@@ -61,6 +63,7 @@ class SnakeControl {   //: public SnakebotControlRequest{
 
   static WindingGait        winding_gait_;
   static HelicalWavePropagateMotion helical_wave_propagate_motion_;
+  static InchwormGait inchworm_gait_;
 
 
 };

@@ -58,12 +58,13 @@ void timerCallback(const ros::TimerEvent& event)
 	}
 
 	if (joystick.button_select and joystick.button_triangle) {
-		mode=1;    //横うねりモード
-		ROS_INFO("Winding Gait -->");
+		mode=1;    //Inchworm Gait
+		ROS_INFO("Inchworm Gait -->");
 	}
 
-    if(mode==1){	//横うねりモード
-    	SnakeControl::OperateMoveWindingShift(joystick);
+    if(mode==1){	//Inchworm Gait
+    	//SnakeControl::OperateMoveWindingShift(joystick);
+    	SnakeControl::OperateMoveInchwormGait(joystick);
     }
 
 	if (joystick.button_select and joystick.button_circle) {

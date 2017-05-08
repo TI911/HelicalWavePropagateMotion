@@ -41,6 +41,11 @@ HelicalWavePropagateMotion SnakeControl::helical_wave_propagate_motion_(
 	    spec.link_length_body()// 0.0905
 );
 
+InchwormGait SnakeControl::inchworm_gait_(
+		/* spec             = */ spec,
+	    spec.link_length_body()// 0.0905);
+
+);
 
 //=== static メンバ変数の定義 ===============//
 SnakeControl::GaitMode SnakeControl::gait_mode_       = SnakeControl::GAIT_MODE_TEST;
@@ -97,6 +102,24 @@ void SnakeControl::OperateMoveWindingShift(joy_handler_hori::JoySelectedData joy
 	SnakeControlRequest::RequestJointSetPosition(target_joint_angle);
 }
 
+void SnakeControl::OperateMoveInchwormGait(joy_handler_hori::JoySelectedData joy_data)
+{
+	std::vector<double> target_joint_angle(spec.num_joint(), 0.0);  // 値0.0で初期化;
+
+
+	if(joy_data.joy_stick_l_y_upwards!=0){
+		inchworm_gait_.add_s(joy_data.joy_stick_l_y_upwards/10);
+	//helical_wave_propagate_motion_.HelicalWavePropagateMotionByShift(spec);
+
+	}
+
+	inchworm_gait_.InchwormGaitByShift(spec);
+
+	target_joint_angle = inchworm_gait_.snake_model_param.angle;
+	SnakeControlRequest::RequestJointSetPosition(target_joint_angle);
+
+
+}
 void SnakeControl::OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySelectedData joy_data)
 {
 	std::vector<double> target_joint_angle(spec.num_joint(), 0.0);  // 値0.0で初期化;
@@ -123,12 +146,32 @@ void SnakeControl::OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySe
 		helical_wave_propagate_motion_.set_theta(0.01);
 	}
 
+	if(joy_data.button_triangle){
+		helical_wave_propagate_motion_.set_psi(0.1);
+	}else{
+		helical_wave_propagate_motion_.set_psi(0.0);
+	}
+
+	if(joy_data.button_square){
+		helical_wave_propagate_motion_.set_psi(-0.1);
+	}else{
+		helical_wave_propagate_motion_.set_psi(0.0);
+	}
+
+
 	if(joy_data.joy_stick_l_y_upwards!=0){
 		helical_wave_propagate_motion_.add_s(joy_data.joy_stick_l_y_upwards/10);
 	}
 
+	if(joy_data.joy_stick_r_y_upwards!=0){
+		helical_wave_propagate_motion_.add_psi(joy_data.joy_stick_r_y_upwards/10);
+		//helical_wave_propagate_motion_.WavePropagation(spec);
+	}
+
+	//helical_wave_propagate_motion_.WavePropagation(spec);
 	helical_wave_propagate_motion_.HelicalWavePropagateMotionByShift(spec);
 	target_joint_angle = helical_wave_propagate_motion_.snake_model_param.angle;
+
 	SnakeControlRequest::RequestJointSetPosition(target_joint_angle);
 }
 

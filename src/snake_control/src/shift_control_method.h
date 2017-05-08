@@ -35,9 +35,10 @@ private:
 	   std::vector<double> tau_hold;
 	   std::vector<double> bias_hold;
 	   std::vector<double> psi_hold;
-	   std::vector<double> phi_hold;
+	   std::vector<double> psi_hyper_hold;
 
    }SHIFT_PARAM;
+
 
    typedef struct{
 	   std::vector<SHIFT_PARAM> shift_param;
@@ -50,7 +51,7 @@ private:
 	   std::vector<double> kappa;  /*  曲率  */
 	   std::vector<double> tau;    /*  捩率  */
 	   std::vector<double> psi;
-	   std::vector<double> phi;
+	   std::vector<double> psi_hyper;
 
     }SNAKE_MODEL_PARAM;
 
@@ -62,11 +63,18 @@ public:
 	SERPENOID_CURVE     serpenoid_curve;
 	SNAKE_MODEL_PARAM   snake_model_param;
 
+	//各种移动模式在继承shift_control_method时，将计算后的曲率，扭率等保存到这里
 	double kappa_;
+	double tau_helical_;
+	double tau_hyperbolic_;
+	double first_tau ;
+
 	double tau_;
+
 	double bias_;
 	double psi_;
-	double phi_;
+	double psi_hyper;
+	//double phi_;
 	double angle_;
 	double ds_;
 
@@ -75,14 +83,14 @@ public:
 	void ShiftParamCurvature(RobotSpec spec);
 	void ShiftParamTorsion(RobotSpec spec);
 	void ShiftParamPsi(RobotSpec spec);
-	void ShiftParamPhi(RobotSpec spec);
-	void ShiftParamBias(RobotSpec spec);
 
+	void ShiftParamPsiHyper(RobotSpec spec);
+	void ShiftParamBias(RobotSpec spec);
 
 	void Calculate_Curvature_Torsion();
 	void Calculate_Torsion();
 	void Calculate_ST();
-	void Calculate_Angle();
+	//void Calculate_Angle(RobotSpec spec);
 
 };
 
