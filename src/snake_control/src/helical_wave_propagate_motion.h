@@ -42,7 +42,7 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		s_ = 0;
 		S_T = 0;
 		t = 0;
-		PI_= 8;
+		pi_= 8;
 		psi_ = 0;
 
 		Init(spec);
@@ -80,11 +80,12 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 	void set_s(double s);
 	void add_s(double add_s){set_s(add_s + s_); }
 
+	void set_flag();
     void set_phi(double phi);
     void add_phi(double add_phi){set_phi(add_phi + phi_hyperbolic_);};
 
-    void set_psi(double psi);
-    void add_psi(double add_psi){set_psi(add_psi + psi_);};
+    void set_pi(double pi);
+    void add_pi(double add_pi){set_pi(add_pi + pi_);};
 
 	double s_;
 	//double v;
@@ -98,7 +99,7 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 	double link_length_;
 	double S_T;
 	int flag_;
-	double PI_;
+	double pi_;
 
 
 
