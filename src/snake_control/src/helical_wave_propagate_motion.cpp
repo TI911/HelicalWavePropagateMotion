@@ -55,11 +55,12 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 			if(phi_hyperbolic_>pi_*M_PI/omega_){  // 波が入ってきたら，phi初期値に戻る
 				phi_hyperbolic_ = -2*M_PI/omega_;
 				//flag_ = 0;                      //flag  OFF に
+				psi_hyper = 0;
 			}
 		}
 
 		while(pre_s_+step_s_ > S_T){
-			t += 0.01;
+			t += 0.1;
 			CalculateSTRelation();
 		}
 
@@ -67,7 +68,7 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 
 		CalculateCurvatureTorsionWithHyperbolic();  //ハイパボリック曲線の曲率κと捩率τの計算
 
-		psi_hyper = psi_hyper + (tau_helical_ - tau_hyperbolic_);  //捻転を抑制するため，
+		psi_hyper = psi_hyper + (tau_hyperbolic_ - tau_helical_);  //捻転を抑制するため，
 
 		psi_  =  psi_hyper + tau_;                                // ;
 
@@ -299,6 +300,7 @@ void HelicalWavePropagateMotion::CalculateCurvatureTorsionWithHyperbolic()
 			+ pow(x[0]*y[1] - y[0]*x[1], 2);
 
 		first_tau = num/denom;
+		//if(first_tau < 0) first_tau=0;
 	    tau_hyperbolic_ = first_tau*step_s_;
 	    tau_ = tau_+ tau_hyperbolic_;
 }
@@ -408,8 +410,9 @@ void HelicalWavePropagateMotion::CalculateTargetAngle3(RobotSpec spec)
 		}
 
         snake_model_param.angle.pop_back();
+        snake_model_param.kappa.pop_back();
 
 		snake_model_param.psi_hyper.pop_back();
 	}
-	usleep(1000*10);        // 制御に時間がかかるので1秒寝て待つ
+	usleep(1000*5);        // 制御に時間がかかるので1秒寝て待つ
 }
