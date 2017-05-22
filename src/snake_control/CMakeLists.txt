@@ -134,6 +134,7 @@ include_directories(
                    src/snake_control_request.cpp
                    src/snake_control.cpp
                    src/winding_gait.cpp
+                   src/inchworm_gait.cpp
                    src/helical_wave_propagate_motion.cpp
                    
  )
