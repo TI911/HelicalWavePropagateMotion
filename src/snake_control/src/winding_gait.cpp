@@ -50,6 +50,24 @@ void WindingGait::Winding(RobotSpec spec)
 
 }
 
+void WindingGait::WindingShift(RobotSpec spec)
+{
+
+    /***　先頭UNITのyaw,pitch 軸のkappa を計算する  ***/
+
+    serpenoid_curve.alpha_s = (pre_s_ * M_PI / (2 * serpenoid_curve.l));
+
+    double  new_target_kappa_yaw    = (M_PI * serpenoid_curve.alpha / (2 * serpenoid_curve.l)) * sin(serpenoid_curve.alpha_s);
+    double new_target_kappa_pitch   = 0;
+    double  new_target_bias         = 0;
+
+    kappa_ = new_target_kappa_yaw;
+    tau_   = new_target_kappa_pitch;
+    ShiftControlMethod::Shift_Param(spec);
+
+}
+
+
 void WindingGait::WindingCalcAngle(RobotSpec spec)
 {
 	double target_angle = 0;
@@ -74,7 +92,13 @@ void WindingGait::WindingCalcAngle(RobotSpec spec)
       		//ROS_INFO("|   snake_model_param.kappa.size[%d] --> data[%4.3f] |", snake_model_param.kappa.size(), snake_model_param.kappa[i]);
 
         }
-		snake_model_param.angle.pop_back();
+		//snake_model_param.angle.pop_back();
+        snake_model_param.angle.pop_back();
+		snake_model_param.kappa.pop_back();
+		//snake_model_param.phi.pop_back();
+		snake_model_param.tau.pop_back();
+		snake_model_param.psi.pop_back();
+		snake_model_param.psi_hyper.pop_back();
     }
 
 }

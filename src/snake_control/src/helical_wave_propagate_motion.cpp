@@ -9,6 +9,7 @@
 //ros::NodeHandle nh_tau;
 //ros::Publisher tau = nh_tau.advertise<std_msgs::Float64>("tau",100);
 
+
 void HelicalWavePropagateMotion::set_radius(double radius)
 {
 	radius_ = radius;
@@ -45,6 +46,12 @@ void HelicalWavePropagateMotion::set_pi(double pi)
 	ROS_INFO(">  PI_ = %4.3f", pi_);
 }
 
+void HelicalWavePropagateMotion::set_psi4roll(double psi4roll)
+{
+	psi4roll_ = psi4roll;
+	//ROS_INFO(">  psi4roll_ = %4.3f", psi4roll_);
+}
+
 void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spec)
 {
 	while(s_ > pre_s_ + step_s_){
@@ -55,8 +62,9 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 			if(phi_hyperbolic_>pi_*M_PI/omega_){  // 波が入ってきたら，phi初期値に戻る
 				phi_hyperbolic_ = -2*M_PI/omega_;
 				//flag_ = 0;                      //flag  OFF に
-				psi_hyper = 0;
+				//psi_hyper = 0;
 			}
+
 		}
 
 		while(pre_s_+step_s_ > S_T){
@@ -68,9 +76,9 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 
 		CalculateCurvatureTorsionWithHyperbolic();  //ハイパボリック曲線の曲率κと捩率τの計算
 
-		psi_hyper = psi_hyper + (tau_hyperbolic_ - tau_helical_);  //捻転を抑制するため，
+		//psi_hyper = psi_hyper + (tau_helical_  - tau_hyperbolic_);  //捻転を抑制するため，
+		psi_hyper = psi_hyper + (tau_hyperbolic_ - (tau_helical_) ) - psi4roll_;  //捻転を抑制するため，
 
-		psi_  =  psi_hyper + tau_;                                // ;
 
 		if(flag_){
 
@@ -79,7 +87,7 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 			CalculateTargetAngle3(spec);      //
 
 		}else{
-
+			psi_  =  psi_  + tau_helical_;
 			ShiftControlMethod::Shift_Param(spec);
 			CalculateTargetAngle2(spec);
 		}
@@ -244,7 +252,7 @@ void HelicalWavePropagateMotion::CalculateTorsionWithHyperbolic()
 	*/
 
     double first_tau = delta_ /(pow(radius_,2)+pow(delta_,2));
-    tau_ = first_tau*step_s_ + tau_;
+    tau_ = first_tau*step_s_ + tau_ - (first_tau*step_s_/10);
     //tau_ = first_tau*pre_s_;
 }
 
@@ -302,7 +310,7 @@ void HelicalWavePropagateMotion::CalculateCurvatureTorsionWithHyperbolic()
 		first_tau = num/denom;
 		//if(first_tau < 0) first_tau=0;
 	    tau_hyperbolic_ = first_tau*step_s_;
-	    tau_ = tau_+ tau_hyperbolic_;
+	    //tau_ = tau_+ tau_hyperbolic_;
 }
 
 void HelicalWavePropagateMotion::CalculateSTRelation()
@@ -387,7 +395,7 @@ void HelicalWavePropagateMotion::CalculateTargetAngle2(RobotSpec spec)
 		snake_model_param.psi.pop_back();
 		snake_model_param.psi_hyper.pop_back();
 	}
-	usleep(1000*10);        // 制御に時間がかかるので1秒寝て待つ
+	//usleep(1000*10);        // 制御に時間がかかるので1秒寝て待つ
 }
 
 void HelicalWavePropagateMotion::CalculateTargetAngle3(RobotSpec spec)
@@ -414,5 +422,5 @@ void HelicalWavePropagateMotion::CalculateTargetAngle3(RobotSpec spec)
 
 		snake_model_param.psi_hyper.pop_back();
 	}
-	usleep(1000*5);        // 制御に時間がかかるので1秒寝て待つ
+	//usleep(1000*5);        // 制御に時間がかかるので1秒寝て待つ
 }

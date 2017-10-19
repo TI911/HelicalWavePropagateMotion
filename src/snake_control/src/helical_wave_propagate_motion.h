@@ -34,16 +34,17 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		flag_ = 0;
 
 		a_ = 0.50;//Init(spec);
-		omega_= 0.5;
+		omega_= 0.2;
 		phi_0_ = -2*M_PI;
 		phi_hyperbolic_ = -2*M_PI;
 		pre_s_ = 0;
-		step_s_= ds/50;
+		step_s_= ds/28;
 		s_ = 0;
 		S_T = 0;
 		t = 0;
-		pi_= 8;
+		pi_= 6;
 		psi_ = 0;
+		psi4roll_ = 0;
 
 		Init(spec);
 	}
@@ -87,6 +88,9 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
     void set_pi(double pi);
     void add_pi(double add_pi){set_pi(add_pi + pi_);};
 
+    void set_psi4roll(double psi4roll);
+    void add_psi4roll(double add_psi4roll){ set_psi4roll(add_psi4roll);};
+
 	double s_;
 	//double v;
 	//double bias;
@@ -100,10 +104,8 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 	double S_T;
 	int flag_;
 	double pi_;
-
-
+	double psi4roll_;
 
 };
-
 
 #endif /* SNAKE_CONTROL_SRC_HELICAL_WAVE_PROPAGATE_MOTION_H_ */

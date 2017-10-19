@@ -12,6 +12,19 @@
 ros::Publisher SnakeControlRequest::pub_joint_target_position_;
 ros::Publisher SnakeControlRequest::pub_joint_command_;
 
+ros::Publisher SnakeControlRequest::pub_joint_command4V2_;  //for V2 snake (Dynamixel XH430)
+
+/** @fn
+ * @brief
+ */
+void SnakeControlRequest::RequestJointPing(uint8_t joint_index)
+{
+	snake_msgs::snake_joint_command joint_command;
+	joint_command.joint_index = joint_index;
+	joint_command.ping = true;
+	pub_joint_command_.publish(joint_command);
+}
+
 /** @fn
  * @brief 全ての関節のエラーをクリアする
  */
@@ -31,6 +44,7 @@ void SnakeControlRequest::RequestJointActivate(uint8_t joint_index) {
   joint_command.joint_index = joint_index;
   joint_command.change_mode_to_active = true;
   pub_joint_command_.publish(joint_command);
+
 }
 
 /** @fn
@@ -41,6 +55,12 @@ void SnakeControlRequest::RequestJointActivateAll() {
   joint_command.target_all = true;
   joint_command.change_mode_to_active = true;
   pub_joint_command_.publish(joint_command);
+
+  snake_msgs::snake_joint_command4V2 joint_command4V2;
+  joint_command4V2.target_all = true;
+  joint_command4V2.change_mode_to_active = true;
+  pub_joint_command4V2_.publish(joint_command4V2);
+
 }
 
 /** @fn
@@ -52,6 +72,7 @@ void SnakeControlRequest::RequestJointFree(uint8_t joint_index) {
   joint_command.joint_index = joint_index;
   joint_command.change_mode_to_free = true;
   pub_joint_command_.publish(joint_command);
+
 }
 
 /** @fn
@@ -62,6 +83,11 @@ void SnakeControlRequest::RequestJointFreeAll() {
   joint_command.target_all = true;
   joint_command.change_mode_to_free = true;
   pub_joint_command_.publish(joint_command);
+
+  snake_msgs::snake_joint_command4V2 joint_command4V2;
+  joint_command4V2.target_all = true;
+  joint_command4V2.change_mode_to_free = true;
+  pub_joint_command4V2_.publish(joint_command4V2);
 }
 
 /** @fn
@@ -208,6 +234,8 @@ void SnakeControlRequest::RequestJointSetPositionRange(std::vector<double> joint
   snake_msgs::snake_joint_command joint_command;
   snake_msgs::snake_joint_data joint_taeget_position;
 
+  snake_msgs::snake_joint_command4V2 joint_command4V2;
+
   for (uint8_t i_joint = start; i_joint<=last; i_joint++) {
     joint_taeget_position.joint_index = i_joint;
     joint_taeget_position.value = joint_angle[i_joint]*180.0/M_PI;
@@ -217,7 +245,12 @@ void SnakeControlRequest::RequestJointSetPositionRange(std::vector<double> joint
     joint_command.joint_index = i_joint;
     joint_command.target_position = joint_angle[i_joint]*180.0/M_PI;
     pub_joint_command_.publish(joint_command);
+
+    joint_command4V2.set_position=true;
+    joint_command4V2.target_position.push_back(joint_angle[i_joint]*180.0/M_PI) ;
   }
+  pub_joint_command4V2_.publish(joint_command4V2);
+  //joint_command4V2.target_position.clear();
 }
 
 

@@ -78,6 +78,8 @@ public:
 	double angle_;
 	double ds_;
 
+	uint8_t NUM_JOINT_;
+
 	void Init(RobotSpec spec);
 	void Shift_Param(RobotSpec spec);
 	void ShiftParamCurvature(RobotSpec spec);

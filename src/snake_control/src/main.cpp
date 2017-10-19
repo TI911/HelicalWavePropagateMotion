@@ -63,8 +63,8 @@ void timerCallback(const ros::TimerEvent& event)
 	}
 
     if(mode==1){	//Inchworm Gait
-    	//SnakeControl::OperateMoveWindingShift(joystick);
-    	SnakeControl::OperateMoveInchwormGait(joystick);
+    	SnakeControl::OperateMoveWindingShift(joystick);
+    	//SnakeControl::OperateMoveInchwormGait(joystick);
     }
 
 	if (joystick.button_select and joystick.button_circle) {
@@ -74,6 +74,18 @@ void timerCallback(const ros::TimerEvent& event)
 
     if(mode==2){
     	SnakeControl::OperateMoveHelicalWavePropagateMotion(joystick);
+    }
+
+    //All motor TORQUE ON
+    if(joystick.button_start){
+    	SnakeControlRequest::RequestJointActivateAll();  //
+		ros::Duration(0.2).sleep();
+    }
+
+    // All motor TORQUE OFF
+    if(joystick.button_select and joystick.button_start){
+    	SnakeControlRequest::RequestJointFreeAll();
+    	ros::Duration(0.2).sleep();
     }
 
 

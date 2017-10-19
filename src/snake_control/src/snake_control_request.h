@@ -13,6 +13,8 @@
 #include <snake_msgs/snake_joint_command.h>
 #include <snake_msgs/snake_joint_data.h>
 
+#include <snake_msgs/snake_joint_command4V2.h>
+
 class SnakeControlRequest {
  public:
   static void Initialize() {
@@ -20,10 +22,12 @@ class SnakeControlRequest {
     pub_joint_command_         = node_handle.advertise<snake_msgs::snake_joint_command>("joint_command", 100);
     pub_joint_target_position_ = node_handle.advertise<snake_msgs::snake_joint_data>("joint_target_position", 100);
 
+    pub_joint_command4V2_ = node_handle.advertise<snake_msgs::snake_joint_command4V2>("joint_command4V2", 100);
+
   }
 
   //--- Joint -----------------------//
-
+  static void RequestJointPing(uint8_t joint_index);
   // 関節への動作要求
   static void RequestJointClearErrorAll();
   static void RequestJointActivate(uint8_t joint_index);
@@ -56,6 +60,8 @@ class SnakeControlRequest {
   //--- Publisher ---//
   static ros::Publisher pub_joint_target_position_;  // 汎用(表示などに使う)
   static ros::Publisher pub_joint_command_;          // ロボット用
+
+  static ros::Publisher pub_joint_command4V2_;
 
 };
 
