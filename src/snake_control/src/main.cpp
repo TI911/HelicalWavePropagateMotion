@@ -11,10 +11,9 @@
 #include "robot_spec.h"
 #include "snake_control.h"
 
-
 joy_handler_hori::JoySelectedData joystick;
 
-//for test
+//NO USED, just for test
 void callback(joy_handler_hori::JoySelectedData joy_selected_data)
 {
 	if(joy_selected_data.button_circle){
@@ -46,16 +45,15 @@ void callback(joy_handler_hori::JoySelectedData joy_selected_data)
 	}
 }
 
-
 // 通常
 void timerCallback(const ros::TimerEvent& event)
 {
 	static int mode = 0;
 
-	if (joystick.button_ps) {
+/*	if (joystick.button_ps) {
 		mode = 0;    //ストップモード
 		ROS_INFO("Stop mode -->");
-	}
+	}*/
 
 	if (joystick.button_select and joystick.button_triangle) {
 		mode=1;    //Inchworm Gait
@@ -63,8 +61,8 @@ void timerCallback(const ros::TimerEvent& event)
 	}
 
     if(mode==1){	//Inchworm Gait
-    	SnakeControl::OperateMoveWindingShift(joystick);
-    	//SnakeControl::OperateMoveInchwormGait(joystick);
+    	//SnakeControl::OperateMoveWindingShift(joystick);
+    	SnakeControl::OperateMoveInchwormGait(joystick);
     }
 
 	if (joystick.button_select and joystick.button_circle) {
@@ -88,6 +86,10 @@ void timerCallback(const ros::TimerEvent& event)
     	ros::Duration(0.2).sleep();
     }
 
+    if(joystick.button_ps){
+    	uint8_t id=0;
+    	SnakeControlRequest::RequestJointPing(id);
+    }
 
     if (joystick.button_r3 ){	//ノード再起動
     	pid_t pid;

@@ -48,7 +48,7 @@ void InchwormGait::InchwormGaitByShift(RobotSpec spec){
 
 		tau_ = tau_ + (tau*step_s_);
 
-		ShiftControlMethod::Shift_Param(spec);
+		ShiftControlMethod::Shift_Param_Forward(spec);
 		CalculateTargetAngle(spec);
 		pre_s_ = pre_s_ + step_s_;
 
@@ -58,6 +58,8 @@ void InchwormGait::InchwormGaitByShift(RobotSpec spec){
 
 void InchwormGait::CalculateTargetAngle(RobotSpec spec)
 {
+
+    snake_model_param.angle.clear();
 	for(int i=0; i<num_link_; i++){
 		if(i%2){ //(奇数番目)
 			target_angle_ =
@@ -70,11 +72,11 @@ void InchwormGait::CalculateTargetAngle(RobotSpec spec)
 			snake_model_param.angle.insert(snake_model_param.angle.begin()+i, target_angle_);
 		}
 
-        snake_model_param.angle.pop_back();
-		snake_model_param.kappa.pop_back();
+
+		//snake_model_param.kappa.pop_back();
 		//snake_model_param.phi.pop_back();
-		snake_model_param.tau.pop_back();
-		snake_model_param.psi.pop_back();
+		//snake_model_param.tau.pop_back();
+		//snake_model_param.psi.pop_back();
 	}
 	usleep(1000*10);        // 制御に時間がかかるので1秒寝て待つ
 }

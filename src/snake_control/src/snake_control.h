@@ -65,7 +65,6 @@ class SnakeControl {   //: public SnakebotControlRequest{
   static HelicalWavePropagateMotion helical_wave_propagate_motion_;
   static InchwormGait inchworm_gait_;
 
-
 };
 
 #endif /* SNAKE_CONTROL_SRC_SNAKE_CONTROL_H_ */

@@ -31,10 +31,6 @@ class WindingGait: public ShiftControlMethod {
 
 		ds_ = ds;
 
-		bias = 0;
-		pre_s_ = 0;
-		s_ = 0;
-		v = 0;
 		Init(spec);
 	}
 
@@ -52,11 +48,6 @@ class WindingGait: public ShiftControlMethod {
 	void add_l(double l_add){ set_l(serpenoid_curve.l + l_add); }
 	void set_v(double v);
 	void add_v(double v_add){ set_v(v_add); }
-
-	double bias;
-	double pre_s_;
-	double s_;
-	double v;
 
 };
 

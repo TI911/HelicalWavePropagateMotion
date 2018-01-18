@@ -19,7 +19,7 @@ RobotSpec spec(
     /* link_length_head [m]  = */ 0.20,
     /* link_length_body [m]  = */ 0.061,
     /* link_length_tail [m]  = */ 0.20,
-    /* link_diameter [m]     = */ 0.08,
+    /* link_diameter [m]     = */ 0.07,
     /* max_joint_angle [rad] = */ 90.0*M_PI/180.0,
     /* max_joint_angle_velocity [rad/s] = */ 80.0*M_PI/180.0,
     /* odd_joint_is_yaw      = */ true
@@ -33,12 +33,12 @@ WindingGait SnakeControl::winding_gait_(
     /* max_alpha        = */ 0.4,
     /* min_l            = */ 1.5*spec.link_diameter(),
     /* max_l            = */ 0.7,
-    spec.link_length_body()// 0.0905
+    spec.link_length_body()// 0.061
   );
 
 HelicalWavePropagateMotion SnakeControl::helical_wave_propagate_motion_(
 	    /* spec             = */ spec,
-	    spec.link_length_body()// 0.0905
+	    spec.link_length_body()// 0.061
 );
 
 InchwormGait SnakeControl::inchworm_gait_(
@@ -56,7 +56,6 @@ double SnakeControl::sampling_time_;
 
 extern joy_handler_hori::JoySelectedData joystick;
 
-
 //=== static メンバ変数の定義 終わり =========//
 
 /** @fn
@@ -65,8 +64,8 @@ extern joy_handler_hori::JoySelectedData joystick;
  * @detail
  *  joy_selected_dataからボタン，ジョイスティックの状態を読み取りそれに応じた動作を行う
  */
-void SnakeControl::CallBackOfJoySelectedData(joy_handler_hori::JoySelectedData joy_data) {
-
+void SnakeControl::CallBackOfJoySelectedData(joy_handler_hori::JoySelectedData joy_data)
+{
   memcpy(&joystick, &joy_data, sizeof(joy_data));
 }
 
@@ -96,7 +95,7 @@ void SnakeControl::OperateMoveWindingShift(joy_handler_hori::JoySelectedData joy
 	double js_data = joy_data.joy_stick_l_y_upwards;
 	winding_gait_.add_v(V_CHANGING_SPEED * js_data);
 
-	winding_gait_.WindingShift(spec);
+	//winding_gait_.WindingShift(spec);
     winding_gait_.WindingCalcAngle(spec);
 	target_joint_angle = winding_gait_.snake_model_param.angle;
 	SnakeControlRequest::RequestJointSetPosition(target_joint_angle);
@@ -126,8 +125,6 @@ void SnakeControl::OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySe
 		helical_wave_propagate_motion_.add_radius(RADIUS_CHANGING_SPEED * sampling_time_);
 	}else if(joy_data.button_r2){
 		helical_wave_propagate_motion_.add_radius(-RADIUS_CHANGING_SPEED * sampling_time_);
-	}else{
-		helical_wave_propagate_motion_.add_radius(0);
 	}
 
 	/*** 螺旋ピッチを変化させる    b(t)= n*t/2*π  ***/
@@ -136,40 +133,39 @@ void SnakeControl::OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySe
 		helical_wave_propagate_motion_.add_delta(DELTA_CHANGING_SPEED * sampling_time_);
 	}else if(joy_data.button_l2){
 		helical_wave_propagate_motion_.add_delta(-DELTA_CHANGING_SPEED * sampling_time_);
-	}else{
-		helical_wave_propagate_motion_.add_delta(0);
 	}
 
 	/***  phiを入れるflag_ ON にする,   A*sech(ω*t-Φ)  ***/
 	if(joy_data.button_cross){
-		helical_wave_propagate_motion_.set_flag();
+		helical_wave_propagate_motion_.set_flag_on();
 	}
 
-	/***  helical wave が入ってくる周期，あるいはΦ入る周期 pi_*π/ω ***/
-	if(joy_data.button_triangle){    /* △を押すと   pi_ = pi_ + 0.1 */
-		helical_wave_propagate_motion_.set_pi(0.1);
-	}else{
-		helical_wave_propagate_motion_.set_pi(0.0);
+	/***  phiを入れるflag_ ON にする,   A*sech(ω*t-Φ)  ***/
+	if(joy_data.button_circle){
+		helical_wave_propagate_motion_.set_flag_off();
 	}
 
-	if(joy_data.button_square){     /* □を押すと   pi_ = pi_ - 0.1 */
-		helical_wave_propagate_motion_.set_pi(-0.1);
-	}else{
-		helical_wave_propagate_motion_.set_pi(0.0);
+	if(joy_data.cross_key_right){
+		helical_wave_propagate_motion_.add_a(0.001);
+	}else if(joy_data.cross_key_left){
+		helical_wave_propagate_motion_.add_a(-0.001);
 	}
+
+	if(joy_data.cross_key_up){
+		helical_wave_propagate_motion_.add_omega(0.001);
+	}else if(joy_data.cross_key_down){
+		helical_wave_propagate_motion_.add_omega(-0.001);
+	}
+
 
 	/***  螺旋曲線に沿った s を増加する   ***/
 	if(joy_data.joy_stick_l_y_upwards!=0){
-		helical_wave_propagate_motion_.add_s(joy_data.joy_stick_l_y_upwards/20);
+		helical_wave_propagate_motion_.add_s(joy_data.joy_stick_l_y_upwards/100);
 	}
 
 	if(joy_data.joy_stick_r_y_upwards!=0){
-		helical_wave_propagate_motion_.add_psi4roll(joy_data.joy_stick_r_y_upwards/1000);
-	}else{
-		helical_wave_propagate_motion_.add_psi4roll(0);
-
+		helical_wave_propagate_motion_.add_psi4roll(joy_data.joy_stick_r_y_upwards/100);
 	}
-
 
 	//helical_wave_propagate_motion_.WavePropagation(spec);
 	helical_wave_propagate_motion_.HelicalWavePropagateMotionByShift(spec);
