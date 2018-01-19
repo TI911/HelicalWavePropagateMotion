@@ -27,26 +27,23 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 			){
 
 		ds_ 	= ds;
-		radius_ = 0.10; // [m]
-		delta_ 	= 0.02; // [m]
 
 		num_link_ 	  = spec.num_joint();
 		link_length_  = spec.link_length_body();
 		target_angle_ = 0;
 
+		radius_ = 0.10; // [m]
+		delta_ 	= 0.02; // [m]
+		a_ 				= 0.01;
+		omega_			= 2.0;
+		phi_hyperbolic_ = 2*M_PI;
 
-		a_ 		= 0.01;
-		omega_	= 4; //sqrt(pow(2*radius_,2)+ pow(delta_*M_PI,2))/(4*M_PI);//sqrt(pow(2*radius_,2)+pow(delta_*M_PI,2))*4*M_PI;//
-
-		phi_hyperbolic_ = 2*M_PI;//+(t_*omega_);// -omega_/2;
-
-		phi_0_	= -M_PI/2 ;//+(t_*omega_);//-2*M_PI;
+		phi_0_	= -M_PI/2 ;
 		omega_0_= 0.4;
 
 		s_ 		= 0;
 		S_T 	= 0;
 		t_ 		= 0;
-		//pi_		= 4;
 
 		pre_s_  = 0;
 		step_s_ = ds/28;
@@ -55,12 +52,9 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		psi_hyper_ = 0;
 		psi4roll_  = 0;
 
-		ahead_psi_=2*phi_hyperbolic_;
-
+		s_mark_= 0;
 		flag_ 	= 0;
 		psi4roll_flag_ = true;
-
-		s_mark_= 0;
 
 		Init(spec);
 	}
@@ -78,7 +72,6 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
     double RungeKutta(double x0, double t0, double tn, int n);
     double dxdt(double t, double x);
 
-    //void
     double CalculateSTRelation(double tt);
     double CalculateIntegral(double a, double b);
 
@@ -108,8 +101,6 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
     void set_phi(double phi);
     void add_phi(double add_phi){set_phi(add_phi + phi_hyperbolic_);};
 
-    //void set_pi(double pi);
-    //void add_pi(double add_pi){set_pi(add_pi + pi_);};
     void set_psi4roll(double psi4roll);
     void add_psi4roll(double add_psi4roll){ set_psi4roll(add_psi4roll);};
 
@@ -128,10 +119,8 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 	double link_length_;
 	double S_T;
 	bool flag_;
-	//double pi_;
-	double psi4roll_, ahead_psi_, s_mark_;
+	double psi4roll_, s_mark_;
 	bool psi4roll_flag_;
-
 };
 
 #endif /* SNAKE_CONTROL_SRC_HELICAL_WAVE_PROPAGATE_MOTION_H_ */

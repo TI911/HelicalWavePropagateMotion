@@ -56,8 +56,6 @@ void HelicalWavePropagateMotion::set_flag_off()
 
 void HelicalWavePropagateMotion::compensate_G()
 {
-
-		//if(!psi4roll_flag_ and phi_hyperbolic_< M_PI/2)
 	if(psi4roll_flag_)
 	{
 		//add_phi(s_mark_ + M_PI/2);
@@ -68,7 +66,6 @@ void HelicalWavePropagateMotion::compensate_G()
 		//add_phi(0.02);
 		//psi_hyper_ += 0.001;
 	}
-
 
 	// 波が入ってきたら，phi初期値に戻る
 /*		if(phi_hyperbolic_>= M_PI/2){
@@ -91,13 +88,13 @@ void HelicalWavePropagateMotion::print_parameters()
 	ROS_INFO("> omega_ = %4.3f	*", omega_);
 	ROS_INFO("> phi    = %4.3f	*", phi_hyperbolic_);
 	ROS_INFO(">	- -	- -	*");
+	ROS_INFO("> t_     = %4.3f	*", t_);
 	ROS_INFO("> psi_   = %4.3f	*", psi_);
 	ROS_INFO("> s_     = %4.3f	*", s_);
-	ROS_INFO("> t_     = %4.3f	*", t_);
-	ROS_INFO("> S_T     = %4.3f	*", S_T);
+	ROS_INFO("> S_T    = %4.3f	*", S_T);
 	//ROS_INFO(">  psi4roll_ = %4.3f", psi4roll_);
 	ROS_INFO(">  link_length_*num_link_ = %4.3f", link_length_*num_link_);
-	ROS_INFO("> s_mark_     = %4.3f	*", s_mark_);
+	ROS_INFO("> s_mark_    = %4.3f	*", s_mark_);
 	ROS_INFO("> step_s     = %4.3f	*", step_s_);
 	ROS_INFO("> kappa_     = %4.3f	*", kappa_);
 	ROS_INFO("> tau_helical_ = %4.3f *", tau_helical_);
@@ -124,27 +121,21 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 {
 	while(s_ > pre_s_ + step_s_){  //
 
-							//Cross buttonを一回押すと flag ON に
+
 		while(pre_s_+step_s_ > S_T){
-			//S_T = S_T + CalculateSTRelation(t_);
 			t_ = t_ + 0.1;
-			//CalculateSTRelation(t_);
 			//CalculateSTRelation(t_);
 			//CalculateIntegral(t_, t_+0.1);
 			S_T = RungeKutta(S_T, t_, t_+0.1, 100);
 		}
 
+		//Cross buttonを一回押すと flag ON に
 		if(flag_){
+
 			if(s_ - s_mark_ >=link_length_*num_link_)
 			{
-				//psi4roll_flag_= true;  //false;
-				//compensate_G();
-				//phi_hyperbolic_ = -M_PI/2;
-				//s_mark_ = S_T=0;
-				t_=0;
+				t_= 0;
 				s_mark_ = s_;
-				//s_=0;
-				//pre_s_ = 0;
 			}
 
 			//compensate_G();
@@ -156,10 +147,9 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 
 			//PSI　補正値
 			//Helical Wave Propagate Motion のための　PSI　補正値のシフト
-			//psi_hyper_ = psi_hyper_ + (tau_hyperbolic_ - tau_helical_) ;   //捻転を抑制するため
-			psi_hyper_ = psi_hyper_ + (tau_helical_  - tau_hyperbolic_);  //捻転を抑制するため，
+			psi_hyper_ = psi_hyper_ + (tau_hyperbolic_ - tau_helical_) ;   //捻転を抑制するため
+			//psi_hyper_ = psi_hyper_ + (tau_helical_  - tau_hyperbolic_);  //捻転を抑制するため，
 			//psi_hyper_ = psi_hyper_ + tau_hyperbolic_;
-
 			//psi_  =  psi_  + tau_helical_;  //tau_hyperbolic_;//
 
 			ShiftParamPsiHyperForHelicalWave(spec);
