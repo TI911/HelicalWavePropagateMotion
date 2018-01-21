@@ -67,15 +67,6 @@ void HelicalWavePropagateMotion::compensate_G()
 		//psi_hyper_ += 0.001;
 	}
 
-	// 波が入ってきたら，phi初期値に戻る
-/*		if(phi_hyperbolic_>= M_PI/2){
-			phi_hyperbolic_ =  -M_PI/2;
-			psi4roll_flag_= true;
-
-			s_mark_ = s_;
-			//flag  OFF に
-			//flag_ = 0;
-		}*/
 }
 
 // 必要なパラメーターをターミナルに表示する
@@ -121,36 +112,38 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 {
 	while(s_ > pre_s_ + step_s_){  //
 
-
 		while(pre_s_+step_s_ > S_T){
 			t_ = t_ + 0.1;
 			//CalculateSTRelation(t_);
 			//CalculateIntegral(t_, t_+0.1);
-			S_T = RungeKutta(S_T, t_, t_+0.1, 100);
+			S_T = RungeKutta(S_T, t_, t_+0.1, 100);	//ルンゲクッタ法(初期条件x0,  区間[t_, t_+0.1], 分割数100-> 0.1/100 ->0.001
 		}
 
 		//Cross buttonを一回押すと flag ON に
 		if(flag_){
 
-			if(s_ - s_mark_ >=link_length_*num_link_)
-			{
-				t_= 0;
-				s_mark_ = s_;
+			double ss= sqrt(pow(radius_*t_, 2)+pow((delta_*t_)/(2*M_PI), 2));
+			if(ss>=link_length_*num_link_){
+				if(s_ - s_mark_ >=link_length_*num_link_){
+					t_= 0;
+					s_mark_ = s_;
+				}
 			}
 
 			//compensate_G();
 			//常螺旋曲線の捩率τの計算
-			CalculateTorsionWithHelicalCurveSimple();
+			//CalculateTorsionWithHelicalCurveSimple();
+			CalculateTorsionWithHelicalCurve();
 			//CalculateCurvatureTorsionWithHelicalCurveSimple();
+			//CalculateCurvatureTorsionWithHelicalCurve();
+
 			//ハイパボリック曲線の曲率κと捩率τの計算
 			CalculateCurvatureTorsionWithHyperbolic();
 
 			//PSI　補正値
 			//Helical Wave Propagate Motion のための　PSI　補正値のシフト
-			psi_hyper_ = psi_hyper_ + (tau_hyperbolic_ - tau_helical_) ;   //捻転を抑制するため
-			//psi_hyper_ = psi_hyper_ + (tau_helical_  - tau_hyperbolic_);  //捻転を抑制するため，
-			//psi_hyper_ = psi_hyper_ + tau_hyperbolic_;
-			//psi_  =  psi_  + tau_helical_;  //tau_hyperbolic_;//
+			//psi_hyper_ = psi_hyper_ + (tau_hyperbolic_ - tau_helical_) ;   //捻転を抑制するため
+			psi_hyper_ = psi_hyper_ + (tau_helical_  - tau_hyperbolic_);  //捻転を抑制するため，
 
 			ShiftParamPsiHyperForHelicalWave(spec);
 			//Helical Wafave Propagate Motion のための　Kappa のシフト
@@ -159,7 +152,8 @@ void HelicalWavePropagateMotion::HelicalWavePropagateMotionByShift(RobotSpec spe
 
 		}else{
 			//常螺旋曲線の捩率τの計算
-			CalculateCurvatureTorsionWithHelicalCurveSimple();
+			//CalculateCurvatureTorsionWithHelicalCurveSimple();
+			CalculateCurvatureTorsionWithHelicalCurve();
 			// PSI
 			psi_  =  psi_  + tau_helical_;
 			//psi_hyper_ = 0;
@@ -190,7 +184,7 @@ void HelicalWavePropagateMotion::CalculateTorsionWithHelicalCurveSimple()
 /**
  *   CalculateTorsionWithHelicalCurve()
  *   常螺旋曲線の捩率を計算するが，Helical　Wave　Curveの式を使用する．
- *   phi_0_　＝　-2*M_PI　の場合，ハイパボリック関数が入ってこないので
+ *   phi_hyperbolic_　＝　-2*M_PI　の場合，ハイパボリック関数が入ってこないので
  *   常螺旋曲線と等しい
  *
  * */
@@ -201,30 +195,30 @@ void HelicalWavePropagateMotion::CalculateTorsionWithHelicalCurve()
 
 	  double x[3], y[3], z[3];
 
-	  x[0] = (-a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_))
-				-sin(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_);
-	  y[0] = cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)
-				-a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_);
+	  x[0] = (-a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_))
+				-sin(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_);
+	  y[0] = cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)
+				-a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_);
 	  z[0] = (M_PI*delta_)/2;
 
-	  x[1] = 2*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+2*a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				-cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)-a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
-	  y[1] = 2*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				-2*a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				-sin(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)-a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
+	  x[1] = 2*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+2*a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				-cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)-a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
+	  y[1] = 2*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				-2*a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				-sin(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)-a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
 	  z[1] = 0;
 
-	  x[2] = (-6*a_*pow(omega_0_,3)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-4)*pow(sinh(omega_0_*t_-phi_0_),3))
-				-6*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+5*a_*pow(omega_0_,3)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				+3*a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)+sin(t_)*
-			    (a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)+3*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
-	  y[2] = (-6*a_*pow(omega_0_,3)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-4)*pow(sinh(omega_0_*t_-phi_0_),3))
-				+6*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+5*a_*pow(omega_0_,3)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				+3*a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)-cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)
-				+radius_)-3*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
+	  x[2] = (-6*a_0_*pow(omega_,3)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-4)*pow(sinh(omega_*t_-phi_hyperbolic_),3))
+				-6*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+5*a_0_*pow(omega_,3)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				+3*a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)+sin(t_)*
+			    (a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)+3*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
+	  y[2] = (-6*a_0_*pow(omega_,3)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-4)*pow(sinh(omega_*t_-phi_hyperbolic_),3))
+				+6*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+5*a_0_*pow(omega_,3)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				+3*a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)-cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)
+				+radius_)-3*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
 	  z[2] = 0;
 
 	  num   =
@@ -245,7 +239,7 @@ void HelicalWavePropagateMotion::CalculateTorsionWithHelicalCurve()
  *   CalculateCurvatureTorsionWithHelicalCurve()
  *
  *   常螺旋曲線の曲率と捩率を計算するが，Helical　Wave　Curveの式を使用する．
- *   phi_0_　＝　-2*M_PI　の場合，ハイパボリック関数が入ってこないので
+ *   phi_hyperbolic_　＝　-2*M_PI　の場合，ハイパボリック関数が入ってこないので
  *   常螺旋曲線と等しい
  *
  * */
@@ -257,38 +251,38 @@ void HelicalWavePropagateMotion::CalculateCurvatureTorsionWithHelicalCurve()
 	  double x[3], y[3], z[3];
 
 	  // 1 回微分
-	  x[0] = (-a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_))
-				-sin(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_);
-	  y[0] = cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)
-				-a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_);
+	  x[0] = (-a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_))
+				-sin(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_);
+	  y[0] = cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)
+				-a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_);
 	  z[0] = (M_PI*delta_)/2;
-	  //z[0] = (M_PI*delta_)/2-(a_*omega_0_*sinh(phi_hyperbolic_+omega_0_*t_))/pow(cosh(phi_hyperbolic_+omega_0_*t_),2);
+	  //z[0] = (M_PI*delta_)/2-(a_0_*omega_*sinh(phi_hyperbolic_+omega_*t_))/pow(cosh(phi_hyperbolic_+omega_*t_),2);
 
 	  // 2 回微分
-	  x[1] = 2*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+2*a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				-cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)-a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
-	  y[1] = 2*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				-2*a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				-sin(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)-a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
+	  x[1] = 2*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+2*a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				-cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)-a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
+	  y[1] = 2*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				-2*a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				-sin(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)-a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
 	  z[1] = 0;
-	  //z[1] = (2*a_*pow(omega_0_,2)*pow(sinh(phi_hyperbolic_+omega_0_*t_),2))/
-	  	//	      pow(cosh(phi_hyperbolic_+omega_0_*t_),3)-(a_*pow(omega_0_,2))/cosh(phi_hyperbolic_+omega_0_*t_);
+	  //z[1] = (2*a_0_*pow(omega_,2)*pow(sinh(phi_hyperbolic_+omega_*t_),2))/
+	  	//	      pow(cosh(phi_hyperbolic_+omega_*t_),3)-(a_0_*pow(omega_,2))/cosh(phi_hyperbolic_+omega_*t_);
 
 	  // 3 回微分
-	  x[2] = (-6*a_*pow(omega_0_,3)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-4)*pow(sinh(omega_0_*t_-phi_0_),3))
-				-6*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+5*a_*pow(omega_0_,3)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				+3*a_*omega_0_*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)+sin(t_)*
-			    (a_*pow(cosh(omega_0_*t_-phi_0_),-1)+radius_)+3*a_*pow(omega_0_,2)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
-	  y[2] = (-6*a_*pow(omega_0_,3)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-4)*pow(sinh(omega_0_*t_-phi_0_),3))
-				+6*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-3)*pow(sinh(omega_0_*t_-phi_0_),2)
-				+5*a_*pow(omega_0_,3)*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)
-				+3*a_*omega_0_*sin(t_)*pow(cosh(omega_0_*t_-phi_0_),-2)*sinh(omega_0_*t_-phi_0_)-cos(t_)*(a_*pow(cosh(omega_0_*t_-phi_0_),-1)
-				+radius_)-3*a_*pow(omega_0_,2)*cos(t_)*pow(cosh(omega_0_*t_-phi_0_),-1);
+	  x[2] = (-6*a_0_*pow(omega_,3)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-4)*pow(sinh(omega_*t_-phi_hyperbolic_),3))
+				-6*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+5*a_0_*pow(omega_,3)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				+3*a_0_*omega_*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)+sin(t_)*
+			    (a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)+radius_)+3*a_0_*pow(omega_,2)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
+	  y[2] = (-6*a_0_*pow(omega_,3)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-4)*pow(sinh(omega_*t_-phi_hyperbolic_),3))
+				+6*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-3)*pow(sinh(omega_*t_-phi_hyperbolic_),2)
+				+5*a_0_*pow(omega_,3)*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)
+				+3*a_0_*omega_*sin(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-2)*sinh(omega_*t_-phi_hyperbolic_)-cos(t_)*(a_0_*pow(cosh(omega_*t_-phi_hyperbolic_),-1)
+				+radius_)-3*a_0_*pow(omega_,2)*cos(t_)*pow(cosh(omega_*t_-phi_hyperbolic_),-1);
 	  z[2] = 0;
-	  //z[2] = (5*a_*pow(omega_0_,3)*sinh(phi_hyperbolic_+omega_0_*t_))/
-		  //    pow(cosh(phi_hyperbolic_+omega_0_*t_),2)-(6*a_*pow(omega_0_,3)*pow(sinh(phi_hyperbolic_+omega_0_*t_),3))/
+	  //z[2] = (5*a_0_*pow(omega_,3)*sinh(phi_hyperbolic_+omega_*t_))/
+		  //    pow(cosh(phi_hyperbolic_+omega_*t_),2)-(6*a_0_*pow(omega_,3)*pow(sinh(phi_hyperbolic_+omega_*t_),3))/
 		  //    pow(cosh(phi_hyperbolic_+omega_*t_),4);
 
 	  num =

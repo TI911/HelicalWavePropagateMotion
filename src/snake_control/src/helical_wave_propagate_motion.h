@@ -38,8 +38,9 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		omega_			= 2.0;
 		phi_hyperbolic_ = 2*M_PI;
 
-		phi_0_	= -M_PI/2 ;
-		omega_0_= 0.4;
+		a_0_=0;
+		//phi_0_	= M_PI ;
+		//omega_0_= 0.4;
 
 		s_ 		= 0;
 		S_T 	= 0;
@@ -112,7 +113,7 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 	//double bias;
 	double pre_s_;
 	double step_s_;
-	double a_, omega_, phi_0_, omega_0_, phi_hyperbolic_, delta_, t_, radius_;
+	double a_, omega_, phi_hyperbolic_, delta_, t_, radius_,a_0_;
 	double target_angle_;
 	//double target_angle_even;
 	int num_link_;
