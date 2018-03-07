@@ -32,16 +32,14 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		link_length_  = spec.link_length_body();
 		target_angle_ = 0;
 
-		radius_ = 0.10; // [m]
-		delta_ 	= 0.02; // [m]
-		a_ 				= 0.01;
-		omega_			= 2.0;
+		radius_ = 0.095; // [m]
+		delta_ 	= 0.029; // [m]
+
+		a_ 				= 0.020;
+		omega_			= 1.0;
 		phi_hyperbolic_ = 2*M_PI;
 
-		a_0_=0;
-		//phi_0_	= M_PI ;
-		//omega_0_= 0.4;
-
+		a_0_	= 0;
 		s_ 		= 0;
 		S_T 	= 0;
 		t_ 		= 0;
@@ -52,10 +50,12 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
 		psi_ 	= 0;
 		psi_hyper_ = 0;
 		psi4roll_  = 0;
+		psi_g_     = 0;
 
 		s_mark_= 0;
-		flag_ 	= 0;
+		flag_ 	= false;
 		psi4roll_flag_ = true;
+		psi_g_ratio_ = 0.0;
 
 		Init(spec);
 	}
@@ -74,7 +74,6 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
     double dxdt(double t, double x);
 
     double CalculateSTRelation(double tt);
-    double CalculateIntegral(double a, double b);
 
     void CalculateTargetAngle(RobotSpec spec);
     void CalculateTargetAngleForRolling(RobotSpec spec);
@@ -102,26 +101,24 @@ class HelicalWavePropagateMotion: public ShiftControlMethod {
     void set_phi(double phi);
     void add_phi(double add_phi){set_phi(add_phi + phi_hyperbolic_);};
 
-    void set_psi4roll(double psi4roll);
-    void add_psi4roll(double add_psi4roll){ set_psi4roll(add_psi4roll);};
+    void set_psi_g_ratio(double psi_g_ratio);
+    void add_psi_g_ratio(double ratio){ set_psi_g_ratio(psi_g_ratio_ + ratio);};
 
     void print_parameters();
     void compensate_G();
 
 	double s_;
-	//double v;
-	//double bias;
 	double pre_s_;
 	double step_s_;
-	double a_, omega_, phi_hyperbolic_, delta_, t_, radius_,a_0_;
+	double a_, omega_, phi_hyperbolic_, delta_, t_, radius_,a_0_, psi_g_;
 	double target_angle_;
-	//double target_angle_even;
 	int num_link_;
 	double link_length_;
 	double S_T;
 	bool flag_;
 	double psi4roll_, s_mark_;
 	bool psi4roll_flag_;
+	double psi_g_ratio_;
 };
 
 #endif /* SNAKE_CONTROL_SRC_HELICAL_WAVE_PROPAGATE_MOTION_H_ */

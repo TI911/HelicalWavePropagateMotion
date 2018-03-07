@@ -144,27 +144,31 @@ void SnakeControl::OperateMoveHelicalWavePropagateMotion(joy_handler_hori::JoySe
 	if(joy_data.button_circle){
 		helical_wave_propagate_motion_.set_flag_off();
 	}
-
+    /*** A を増加  ***/
 	if(joy_data.cross_key_right){
 		helical_wave_propagate_motion_.add_a(0.001);
+
+	/*** A を減少  ***/
 	}else if(joy_data.cross_key_left){
 		helical_wave_propagate_motion_.add_a(-0.001);
 	}
-
+	/*** omega を増加  ***/
 	if(joy_data.cross_key_up){
-		helical_wave_propagate_motion_.add_omega(0.001);
-	}else if(joy_data.cross_key_down){
-		helical_wave_propagate_motion_.add_omega(-0.001);
-	}
+		helical_wave_propagate_motion_.add_omega(0.1);
 
+	/*** omega を減少  ***/
+	}else if(joy_data.cross_key_down){
+		helical_wave_propagate_motion_.add_omega(-0.1);
+	}
 
 	/***  螺旋曲線に沿った s を増加する   ***/
 	if(joy_data.joy_stick_l_y_upwards!=0){
 		helical_wave_propagate_motion_.add_s(joy_data.joy_stick_l_y_upwards/100);
 	}
 
+	/***  ***/
 	if(joy_data.joy_stick_r_y_upwards!=0){
-		helical_wave_propagate_motion_.add_psi4roll(joy_data.joy_stick_r_y_upwards/100);
+		helical_wave_propagate_motion_.add_psi_g_ratio(joy_data.joy_stick_r_y_upwards/1000);
 	}
 
 	//helical_wave_propagate_motion_.WavePropagation(spec);

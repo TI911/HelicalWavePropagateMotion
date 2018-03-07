@@ -90,7 +90,7 @@ void ShiftControlMethod::Shift_Param_Back(RobotSpec spec)
 	int NUMOFLINK = spec.num_joint() ;
 
 	//  ヘビ関節の vector をクリアする
-	//snake_model_param.bias.clear();
+	snake_model_param.bias.clear();
 	snake_model_param.kappa.clear();
 	snake_model_param.tau.clear();
 	snake_model_param.psi.clear();
@@ -98,7 +98,7 @@ void ShiftControlMethod::Shift_Param_Back(RobotSpec spec)
 
 	// kappa, tau, psi と psi_hyper を先頭ユニットの vector の先頭から入れる
 	// 先頭デックの最初の要素に現在κ...を追加 (デックの長さ前より＋１になる)
-	//hold_data.shift_param[0].bias_hold.insert(hold_data.shift_param[0].bias_hold.begin(), bias_);
+	hold_data.shift_param[0].bias_hold.insert(hold_data.shift_param[0].bias_hold.begin(), bias_);
 	hold_data.shift_param[0].kappa_hold.insert(hold_data.shift_param[0].kappa_hold.begin(), kappa_);
 	hold_data.shift_param[0].tau_hold.insert(hold_data.shift_param[0].tau_hold.begin(), tau_);
 	hold_data.shift_param[0].psi_hold.insert(hold_data.shift_param[0].psi_hold.begin(), psi_);
@@ -108,7 +108,7 @@ void ShiftControlMethod::Shift_Param_Back(RobotSpec spec)
 	int hold_num = (int)hold_data.shift_param[0].kappa_hold.size();   // --> max hold num + 1
 	//ROS_INFO("hold_num size = %d", hold_num);
 	for(int i=1; i<NUMOFLINK; i++){
-		//hold_data.shift_param[i].bias_hold.insert(hold_data.shift_param[i].bias_hold.begin(), hold_data.shift_param[i-1].bias_hold[hold_num-1]);
+		hold_data.shift_param[i].bias_hold.insert(hold_data.shift_param[i].bias_hold.begin(), hold_data.shift_param[i-1].bias_hold[hold_num-1]);
 		hold_data.shift_param[i].kappa_hold.insert(hold_data.shift_param[i].kappa_hold.begin(), hold_data.shift_param[i-1].kappa_hold[hold_num-1]);
 		hold_data.shift_param[i].tau_hold.insert(hold_data.shift_param[i].tau_hold.begin(), hold_data.shift_param[i-1].tau_hold[hold_num-1]);
 		hold_data.shift_param[i].psi_hold.insert(hold_data.shift_param[i].psi_hold.begin(), hold_data.shift_param[i-1].psi_hold[hold_num-1]);
@@ -123,12 +123,12 @@ void ShiftControlMethod::Shift_Param_Back(RobotSpec spec)
 	for(int i=0; i<NUMOFLINK; i++){
 		snake_model_param.kappa.insert(snake_model_param.kappa.begin(), hold_data.shift_param[i].kappa_hold[hold_num-1]);
    	    snake_model_param.tau.insert(snake_model_param.tau.begin(), hold_data.shift_param[i].tau_hold[hold_num-1]);
-   	    //snake_model_param.bias.insert(snake_model_param.bias.begin(), hold_data.shift_param[i].bias_hold[hold_num-1]);
+   	    snake_model_param.bias.insert(snake_model_param.bias.begin(), hold_data.shift_param[i].bias_hold[hold_num-1]);
    	    snake_model_param.psi.insert(snake_model_param.psi.begin(), hold_data.shift_param[i].psi_hold[hold_num-1]);
         snake_model_param.psi_hyper.insert(snake_model_param.psi_hyper.begin(), hold_data.shift_param[i].psi_hyper_hold[hold_num-1]);
 
         // 角度保持 vectorは＋１になりましたので，vector 最後の要素を削除する     ----> max hold num - 1
-		//hold_data.shift_param[i].bias_hold.pop_back();
+		hold_data.shift_param[i].bias_hold.pop_back();
 		hold_data.shift_param[i].kappa_hold.pop_back();
 		hold_data.shift_param[i].tau_hold.pop_back();
 		hold_data.shift_param[i].psi_hold.pop_back();
@@ -245,5 +245,36 @@ void ShiftControlMethod::ShiftParamPsiHyperForHelicalWave(RobotSpec spec)
 	for(int i=0; i<NUMOFLINK; i++){
 		snake_model_param.psi_hyper.insert(snake_model_param.psi_hyper.begin(), hold_data.shift_param[i].psi_hyper_hold[hold_num-1]);
 		hold_data.shift_param[i].psi_hyper_hold.pop_back();
+	}
+}
+
+/***
+ *   Helical Wave Propagate Motion のための   psi_hyper のシフト制御
+ *	 螺旋進行波はヘビのしっぽからおくるため
+ * */
+void ShiftControlMethod::ShiftParamPsiForHelicalWave(RobotSpec spec)
+{
+	snake_model_param.psi.clear();
+	int NUMOFLINK = spec.num_joint() ;
+
+	//  psi_hyper を先頭ユニットのDEQUEの先頭から入れる
+	//  先頭デックの最初の要素に現在 psi_hyper を追加 (デックの長さ前より＋１になる)
+	hold_data.shift_param[0].psi_hold.insert(hold_data.shift_param[0].psi_hold.begin(), psi_hyper_);
+
+	//  一つ前の関節の VECTOR の最後のものを次の関節の VECTOR の先頭から追加する  ***/
+	int hold_num = (int)hold_data.shift_param[0].psi_hold.size();
+	for(int i=1; i<NUMOFLINK; i++){
+		hold_data.shift_param[i].psi_hold.insert(hold_data.shift_param[i].psi_hold.begin(), hold_data.shift_param[i-1].psi_hold[hold_num-1]);
+	}
+
+	// 角度保持 VECTOR の末尾の psi_hyper を読み取る --> ヘビ関節 vector の先頭から追加する
+	//  螺旋進行波はヘビのしっぽからおくるため
+	// _____________________________________________________________________________
+	// | --> | --> | --> | --> | --> | --> | --> | --> --> --> | 一番初めに入れたデータ |
+	// |_先頭_|_____|_____|_____|_____|_____|_____|_____________|_______末尾_________|
+	//    0     1     2     3     4     5     6    ............          n
+	for(int i=0; i<NUMOFLINK; i++){
+		snake_model_param.psi.insert(snake_model_param.psi.begin(), hold_data.shift_param[i].psi_hold[hold_num-1]);
+		hold_data.shift_param[i].psi_hold.pop_back();
 	}
 }

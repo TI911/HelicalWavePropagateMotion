@@ -97,6 +97,7 @@ public:
 
 	void ShiftParamCurvatureForHelicalWave(RobotSpec spec);
 	void ShiftParamPsiHyperForHelicalWave(RobotSpec spec);
+	void ShiftParamPsiForHelicalWave(RobotSpec spec);
 
 	void ShiftParamBias(RobotSpec spec);
 
